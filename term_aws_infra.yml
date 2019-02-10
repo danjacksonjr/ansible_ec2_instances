@@ -1,0 +1,34 @@
+---
+- name: Terminate AWS Infrastructure
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars/aws_info.yml
+    - vars/vault.yml
+  tasks:
+    - name: Gather EC2 Facts
+      ec2_instance_facts:
+        region: "{{ aws_region }}"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+      register: ec2
+
+    - name: Terminate SG
+      ec2_group:
+        name: remote_access
+        description: "Remote Access Security Group"
+        region: "{{aws_region}}"
+        vpc_id: "{{aws_vpc_id}}"
+        aws_access_key: "{{aws_access_key}}"
+        aws_secret_key: "{{aws_secret_key}}"
+        state: absent
+
+    - name: Terminate All EC2 Instances
+      ec2:
+        instance_ids: '{{ item.instance_id }}'
+        state: absent
+        region: "{{ aws_region }}"
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+      with_items: "{{ ec2.instances }}"

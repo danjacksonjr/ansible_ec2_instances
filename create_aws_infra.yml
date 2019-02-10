@@ -1,0 +1,45 @@
+---
+  # Create AWS Infrastructure
+- name: Create AWS Infrastructure
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - vars/aws_info.yml
+    - vars/vault.yml
+  tasks:
+    # Create Security Group with SSH access from Specific IP
+  - name: Create SG
+    ec2_group:
+      name: remote_access
+      description: "Remote Access Security Group"
+      region: "{{aws_region}}"
+      vpc_id: "{{aws_vpc_id}}"
+      aws_access_key: "{{aws_access_key}}"
+      aws_secret_key: "{{aws_secret_key}}"
+      rules:
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip: "{{aws_local_cidr_ip}}"
+        - proto: all
+          group_name: remote_access
+      rules_egress:
+        - proto: all
+          cidr_ip: 0.0.0.0/0
+
+  - name: Create EC2 Instance
+    ec2:
+      aws_access_key: "{{aws_access_key}}"
+      aws_secret_key: "{{aws_secret_key}}"
+      key_name: "{{aws_key_name}}"
+      image: "{{aws_image}}"
+      wait: yes
+      instance_type: "{{aws_instance_type}}"
+      region: "{{aws_region}}"
+      vpc_subnet_id: "{{aws_subnet_id}}"
+      id: aws102
+      state: present
+      instance_tags:
+            Name: Ubuntu Server
+    register: ec2

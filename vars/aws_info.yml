@@ -1,0 +1,4 @@
+---
+aws_region: "us-east-2" # Example us-east-2
+aws_image: "ami-0f65671a86f061fcd" # Example ami-xxxxxxx (Ubuntu 16.04)
+aws_instance_type: t2.micro # Example t2.micro
